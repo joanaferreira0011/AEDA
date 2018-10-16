@@ -1,178 +1,219 @@
 #include "cute.h"
 #include "ide_listener.h"
 #include "cute_runner.h"
-#include "zoo.h"
-#include <fstream>
+#include <string>
+#include "grafo.h"
 
-using namespace std;
-
-void test_a_criarAnimais() {
-	Animal *a1=new Cao("kurika",10,"estrela");  //nome, idade, raça
-	Animal *a2=new Morcego("bobo",2,70,2);  //nome, idade, velocidade_maxima, altura_maxima
-	Animal *a3=new Cao("bobby",3,"rafeiro");
-	Animal *a4=new Cao("fly",7,"dalmata");
-	Animal *a5=new Morcego("timao",7,80,4);
-	ASSERT_EQUAL("kurika", a1->getNome());
-	ASSERT_EQUAL("bobo", a2->getNome());
-	ASSERT_EQUAL("bobby", a3->getNome());
-	ASSERT_EQUAL("fly", a4->getNome());
-	ASSERT_EQUAL("timao", a5->getNome());
-	ASSERT_EQUAL(true, a3->eJovem());
-	ASSERT_EQUAL(false, a4->eJovem());
-	ASSERT_EQUAL(true, a2->eJovem());
-	ASSERT_EQUAL(false, a5->eJovem());
-	ASSERT_EQUAL(2, Animal::getMaisJovem());
+void test_a_ConstrutorNosArestas() {
+	Grafo<string,int> g;
+	ASSERT_EQUAL(0, g.numNos());
+	ASSERT_EQUAL(0, g.numArestas());
 }
 
+void test_b_InserirNo() {
+	Grafo<string,int> f;
+	f.inserirNo("A");
+	f.inserirNo("B");
+	f.inserirNo("C");
+	ASSERT_EQUAL(3, f.numNos());
 
-void test_b_adicionarAnimais() {
-	Zoo z1;
-
-	Animal *a1=new Cao("kurika",10,"estrela");  //nome, idade, raça
-	Animal *a2=new Morcego("bobo",2,70,2);  //nome, idade, velocidade_maxima, altura_maxima
-	Animal *a3=new Cao("bobby",3,"rafeiro");
-	Animal *a4=new Cao("fly",7,"dalmata");
-	Animal *a5=new Morcego("timao",7,80,4);
-
-	z1.adicionaAnimal(a1);
-	z1.adicionaAnimal(a2);
-	z1.adicionaAnimal(a3);
-	z1.adicionaAnimal(a4);
-	z1.adicionaAnimal(a5);
-
-	ASSERT_EQUAL(5, z1.numAnimais());
+	ASSERT_THROWS(f.inserirNo("B"), NoRepetido<string>);
+	try {
+		f.inserirNo("B");
+	}
+	catch (NoRepetido<string> &e) {
+		ostringstream ostr;
+		ostr << e;
+		string str = "No repetido: B";
+		ASSERT_EQUAL(str, ostr.str());
+	}
+	f.inserirNo("D");
+	f.inserirNo("E");
+	ASSERT_EQUAL(5, f.numNos());
 }
 
-void test_c_imprimirAnimais() {
-	Zoo z1;
+void test_c_InserirAresta() {
+	/*Grafo<string,int> f;
+	f.inserirNo("A");
+	f.inserirNo("B");
+	f.inserirNo("C");
+	f.inserirNo("D");
+	f.inserirNo("E");
+	f.inserirAresta("A", "B", 5);
+	f.inserirAresta("A", "C", 8);
+	f.inserirAresta("B", "D", 9);
+	f.inserirAresta("C", "D", 3);
+	f.inserirAresta("C", "E", 4);
+	f.inserirAresta("D", "E", 2);
+	f.inserirAresta("D", "B", 11);
+	ASSERT_EQUAL(7, f.numArestas());
+	ASSERT_THROWS(f.inserirAresta("D", "B", 12), ArestaRepetida<string>);
+	try {
+		f.inserirAresta("D", "B", 12);
+	}
+	catch (ArestaRepetida<string> &e) {
+		ostringstream ostr;
+		ostr << e;
+		string str = "Aresta repetida: D , B";
+		ASSERT_EQUAL(str, ostr.str());
+	}
 
-	Animal *a1=new Cao("kurika",10,"estrela");  //nome, idade, raça
-	ASSERT_EQUAL("kurika, 10, estrela", a1->getInformacao());
+	ASSERT_THROWS(f.inserirAresta("F", "B", 11), NoInexistente<string>);
+	try {
+		f.inserirAresta("F", "B", 11);
+	}
+	catch (NoInexistente<string> &e) {
+		ostringstream ostr1;
+		ostr1 << e;
+		string str1 = "No inexistente: F";
+		ASSERT_EQUAL(str1, ostr1.str());
+	}
 
-	Animal *a2=new Morcego("bobo",2,70,2);  //nome, idade, velocidade_maxima, altura_maxima
-	ASSERT_EQUAL("bobo, 2, 70, 2", a2->getInformacao());
-
-	z1.adicionaAnimal(a1);
-	z1.adicionaAnimal(a2);
-
-	cout << z1.getInformacao();
+	ASSERT_EQUAL(7, f.numArestas());*/
 }
 
-void test_d_verificarAnimalJovem() {
-	/*Zoo z1;
+void test_d_ValorAresta() {
+	/*Grafo<string,int> f;
+	f.inserirNo("A");
+	f.inserirNo("B");
+	f.inserirNo("C");
+	f.inserirNo("D");
+	f.inserirNo("E");
+	f.inserirAresta("A", "B", 5);
+	f.inserirAresta("A", "C", 8);
+	f.inserirAresta("B", "D", 9);
+	f.inserirAresta("C", "D", 3);
+	f.inserirAresta("C", "E", 4);
+	f.inserirAresta("D", "E", 2);
+	f.inserirAresta("D", "B", 11);
+	f.valorAresta("A", "B") = 15;
+	ASSERT_EQUAL(15, f.valorAresta("A", "B"));
+	ASSERT_THROWS(f.valorAresta("A", "A"), ArestaInexistente<string>);
+	try {
+		f.valorAresta("A", "A");
+	}
+	catch (ArestaInexistente<string> &e) {
+		//cout << "Apanhou excecao " << e << endl;
+		ostringstream ostr;
+		ostr << e;
+		string str = "Aresta inexistente: A , A";
+		ASSERT_EQUAL(str, ostr.str());
+	}
 
-	Animal *a1=new Cao("kurika",10,"estrela");  //nome, idade, raça
-	Animal *a2=new Morcego("bobo",2,70,2);  //nome, idade, velocidade_maxima, altura_maxima
-
-	z1.adicionaAnimal(a1);
-	z1.adicionaAnimal(a2);
-
-	ASSERT_EQUAL(false, z1.animalJovem("kurika"));
-	ASSERT_EQUAL(true, z1.animalJovem("bobo"));*/
+	ASSERT_THROWS(f.valorAresta("F", "B"), NoInexistente<string>);
+	try {
+		f.valorAresta("F", "B");
+	}
+	catch (NoInexistente<string> &e) {
+		//cout << "Apanhou excecao " << e << endl;
+		ostringstream ostr1;
+		ostr1 << e;
+		string str1 = "No inexistente: F";
+		ASSERT_EQUAL(str1, ostr1.str());
+	}*/
 }
 
-void test_e_alocarVeterinarios() {
-/*
-	Zoo z1;
+void test_e_EliminarAresta() {
+	/*Grafo<string,int> f;
+	f.inserirNo("A");
+	f.inserirNo("B");
+	f.inserirNo("C");
+	f.inserirNo("D");
+	f.inserirNo("E");
+	f.inserirAresta("A", "B", 5);
+	f.inserirAresta("A", "C", 8);
+	f.inserirAresta("B", "D", 9);
+	f.inserirAresta("C", "D", 3);
+	f.inserirAresta("C", "E", 4);
+	f.inserirAresta("D", "E", 2);
+	f.inserirAresta("D", "B", 11);
+	ASSERT_EQUAL(7, f.numArestas());
+	f.eliminarAresta("D", "E");
+	ASSERT_EQUAL(6, f.numArestas());
+	ASSERT_THROWS(f.eliminarAresta("D", "A"), ArestaInexistente<string>);
+	try {
+		f.eliminarAresta("A", "A");
+	}
+	catch (ArestaInexistente<string> &e) {
+		//cout << "Apanhou excecao " << e << endl;
+		ostringstream ostr;
+		ostr << e;
+		string str = "Aresta inexistente: A , A";
+		ASSERT_EQUAL(str, ostr.str());
+	}
 
-	Animal *a1=new Cao("kurika",10,"estrela");  //nome, idade, raça
-	Animal *a2=new Morcego("bobo",2,70,2);  //nome, idade, velocidade_maxima, altura_maxima
-	Animal *a3=new Cao("bobby",3,"rafeiro");
-	Animal *a4=new Cao("fly",7,"dalmata");
-	Animal *a5=new Morcego("timao",7,80,4);
+	ASSERT_THROWS(f.eliminarAresta("F", "B"), NoInexistente<string>);
+	try {
+		f.eliminarAresta("F", "B");
+	}
+	catch (NoInexistente<string> &e) {
+		//cout << "Apanhou excecao " << e << endl;
+		ostringstream ostr1;
+		ostr1 << e;
+		string str1 = "No inexistente: F";
+		ASSERT_EQUAL(str1, ostr1.str());
+	}
 
-	z1.adicionaAnimal(a1);
-	z1.adicionaAnimal(a2);
-	z1.adicionaAnimal(a3);
-	z1.adicionaAnimal(a4);
-	z1.adicionaAnimal(a5);
-
-	//TODO trocar o caminho do ficheiro para o caminho correcto; caminho relativo não funciona!
-	ifstream fVet("vets.txt");
-	if (!fVet) cerr << "Ficheiro de veterinarios inexistente!\n";
-	else z1.alocaVeterinarios(fVet);
-	fVet.close();
-
-	ASSERT_EQUAL(5, z1.numAnimais());
-	ASSERT_EQUAL(3, z1.numVeterinarios());
-	ASSERT_EQUAL("kurika, 10, Rui Silva, 1234, estrela", a1->getInformacao());*/
+	ASSERT_EQUAL(6, f.numArestas());*/
 }
 
-void test_f_removerVeterinario() {
-
-/*	Zoo z1;
-
-	Animal *a1=new Cao("kurika",10,"estrela");  //nome, idade, raça
-	Animal *a2=new Morcego("bobo",2,70,2);  //nome, idade, velocidade_maxima, altura_maxima
-	Animal *a3=new Cao("bobby",3,"rafeiro");
-	Animal *a4=new Cao("fly",7,"dalmata");
-	Animal *a5=new Morcego("timao",7,80,4);
-
-	z1.adicionaAnimal(a1);
-	z1.adicionaAnimal(a2);
-	z1.adicionaAnimal(a3);
-	z1.adicionaAnimal(a4);
-	z1.adicionaAnimal(a5);
-
-	//TODO trocar o caminho do ficheiro para o caminho correcto; caminho relativo não funciona!
-	ifstream fVet("vets.txt");
-	if (!fVet) cerr << "Ficheiro de veterinarios inexistente!\n";
-	else z1.alocaVeterinarios(fVet);
-	fVet.close();
-
-	ASSERT_EQUAL(5, z1.numAnimais());
-	ASSERT_EQUAL(3, z1.numVeterinarios());
-	ASSERT_EQUAL("kurika, 10, Rui Silva, 1234, estrela", a1->getInformacao());
-
-	z1.removeVeterinario("Rui Silva");
-
-	ASSERT_EQUAL("kurika, 10, Artur Costa, 3542, estrela", a1->getInformacao());*/
+void test_f_ImprimirGrafo() {
+	/*Grafo<string,int> f;
+	f.inserirNo("A");
+	f.inserirNo("B");
+	f.inserirNo("C");
+	f.inserirNo("D");
+	f.inserirNo("E");
+	f.inserirAresta("A", "B", 5);
+	f.inserirAresta("A", "C", 8);
+	f.inserirAresta("B", "D", 9);
+	f.inserirAresta("C", "D", 3);
+	f.inserirAresta("C", "E", 4);
+	f.inserirAresta("D", "E", 2);
+	f.inserirAresta("D", "B", 11);
+	ASSERT_EQUAL(7, f.numArestas());
+	ostringstream ostr;
+	f.imprimir(ostr);
+	string str = "( A[ B 5] [ C 8] ) ( B[ D 9] ) ( C[ D 3] [ E 4] ) ( D[ E 2] [ B 11] ) ( E) ";
+	cout << str.c_str()<<endl;
+	ASSERT_EQUAL(str, ostr.str());
+*/
 }
 
-void test_h_compararZoos() {
-	/*Zoo z1;
-
-	Animal *a1=new Cao("kurika",10,"estrela");  //nome, idade, raça
-	Animal *a2=new Morcego("bobo",2,70,2);  //nome, idade, velocidade_maxima, altura_maxima
-	Animal *a3=new Cao("bobby",3,"rafeiro");
-	Animal *a4=new Cao("fly",7,"dalmata");
-	Animal *a5=new Morcego("timao",7,80,4);
-
-	z1.adicionaAnimal(a1);
-	z1.adicionaAnimal(a2);
-	z1.adicionaAnimal(a3);
-	z1.adicionaAnimal(a4);
-	z1.adicionaAnimal(a5);
-
-	Zoo z2;
-
-	Animal *b1=new Cao("kurika",10,"estrela");  //nome, idade, raça
-	Animal *b2=new Morcego("bobo",2,70,2);  //nome, idade, velocidade_maxima, altura_maxima
-	Animal *b3=new Cao("bobby",3,"rafeiro");
-	Animal *b4=new Cao("fly",7,"dalmata");
-
-	z2.adicionaAnimal(b1);
-	z2.adicionaAnimal(b2);
-	z2.adicionaAnimal(b3);
-	z2.adicionaAnimal(b4);
-
-	ASSERT_EQUAL(true, z2 < z1);*/
+void test_g_OperadorSaida() {
+/*	Grafo<string,int> f;
+	f.inserirNo("A");
+	f.inserirNo("B");
+	f.inserirNo("C");
+	f.inserirNo("D");
+	f.inserirNo("E");
+	f.inserirAresta("A", "B", 5);
+	f.inserirAresta("A", "C", 8);
+	f.inserirAresta("B", "D", 9);
+	f.inserirAresta("C", "D", 3);
+	f.inserirAresta("C", "E", 4);
+	f.inserirAresta("D", "E", 2);
+	f.inserirAresta("D", "B", 11);
+	ASSERT_EQUAL(7, f.numArestas());
+	ostringstream ostr;
+	ostr << f;
+	string str = "( A[ B 5] [ C 8] ) ( B[ D 9] ) ( C[ D 3] [ E 4] ) ( D[ E 2] [ B 11] ) ( E) ";
+	ASSERT_EQUAL(str, ostr.str());*/
 }
-
 
 void runSuite(){
 	cute::suite s;
-	//TODO add your test here
-	s.push_back(CUTE(test_a_criarAnimais));
-	s.push_back(CUTE(test_b_adicionarAnimais));
-	s.push_back(CUTE(test_c_imprimirAnimais));
-	s.push_back(CUTE(test_d_verificarAnimalJovem));
-	s.push_back(CUTE(test_e_alocarVeterinarios));
-	s.push_back(CUTE(test_f_removerVeterinario));
-	s.push_back(CUTE(test_h_compararZoos));
+	s.push_back(CUTE(test_a_ConstrutorNosArestas));
+	s.push_back(CUTE(test_b_InserirNo));
+	s.push_back(CUTE(test_c_InserirAresta));
+	s.push_back(CUTE(test_d_ValorAresta));
+	s.push_back(CUTE(test_e_EliminarAresta));
+	s.push_back(CUTE(test_f_ImprimirGrafo));
+	s.push_back(CUTE(test_g_OperadorSaida));
 	cute::ide_listener<> lis;
-	cute::makeRunner(lis)(s, "AEDA 2018/2019 - Aula Pratica 3");
+	cute::makeRunner(lis)(s, "AEDA 2018/2019 - Aula Pratica 4");
 }
+
 
 int main(){
     runSuite();
