@@ -1,219 +1,188 @@
 #include "cute.h"
 #include "ide_listener.h"
 #include "cute_runner.h"
-#include <string>
-#include "grafo.h"
+#include "parque.h"
 
-void test_a_ConstrutorNosArestas() {
-	Grafo<string,int> g;
-	ASSERT_EQUAL(0, g.numNos());
-	ASSERT_EQUAL(0, g.numArestas());
+
+void test_a_Pesquisa() {
+	ParqueEstacionamento p1(10,20);
+	p1.adicionaCliente("Joao Santos");
+	p1.adicionaCliente("Pedro Morais");
+	p1.adicionaCliente("Rui Silva");
+	p1.adicionaCliente("Susana Costa");
+	p1.adicionaCliente("Maria Tavares");
+	ASSERT_EQUAL(0, p1.posicaoCliente("Joao Santos"));
+	ASSERT_EQUAL(4, p1.posicaoCliente("Maria Tavares"));
+	ASSERT_EQUAL(1, p1.posicaoCliente("Pedro Morais"));
+	ASSERT_EQUAL(-1, p1.posicaoCliente("Tiago Tavares"));
 }
 
-void test_b_InserirNo() {
-	Grafo<string,int> f;
-	f.inserirNo("A");
-	f.inserirNo("B");
-	f.inserirNo("C");
-	ASSERT_EQUAL(3, f.numNos());
-
-	ASSERT_THROWS(f.inserirNo("B"), NoRepetido<string>);
+void test_b_UtilizacaoParque() {
+	ParqueEstacionamento p1(10,20);
+	p1.adicionaCliente("Joao Santos");
+	p1.adicionaCliente("Pedro Morais");
+	p1.adicionaCliente("Rui Silva");
+	p1.adicionaCliente("Susana Costa");
+	p1.adicionaCliente("Maria Tavares");
+	p1.entrar("Maria Tavares");
+	p1.entrar("Susana Costa");
+	p1.sair("Susana Costa");
+	p1.sair("Maria Tavares");
+	p1.entrar("Maria Tavares");
+	p1.sair("Maria Tavares");
+	p1.entrar("Rui Silva");
+	p1.sair("Rui Silva");
+	p1.entrar("Susana Costa");
+	p1.entrar("Rui Silva");
+	p1.sair("Rui Silva");
+	p1.entrar("Rui Silva");
+	p1.entrar("Pedro Morais");
+	ASSERT_EQUAL(3, p1.getFrequencia("Rui Silva"));
+	ASSERT_EQUAL(1, p1.getFrequencia("Pedro Morais"));
+	ASSERT_EQUAL(0, p1.getFrequencia("Joao Santos"));
+	ASSERT_THROWS(p1.getFrequencia("Tiago Silva"), ClienteNaoExistente);
 	try {
-		f.inserirNo("B");
+		p1.getFrequencia("Tiago Silva");
 	}
-	catch (NoRepetido<string> &e) {
-		ostringstream ostr;
-		ostr << e;
-		string str = "No repetido: B";
-		ASSERT_EQUAL(str, ostr.str());
+	catch (ClienteNaoExistente &e) {
+		cout << "Apanhou excecao. Cliente nao existente: " << e.getNome() << endl;
+		ASSERT_EQUAL("Tiago Silva", e.getNome());
 	}
-	f.inserirNo("D");
-	f.inserirNo("E");
-	ASSERT_EQUAL(5, f.numNos());
 }
 
-void test_c_InserirAresta() {
-	/*Grafo<string,int> f;
-	f.inserirNo("A");
-	f.inserirNo("B");
-	f.inserirNo("C");
-	f.inserirNo("D");
-	f.inserirNo("E");
-	f.inserirAresta("A", "B", 5);
-	f.inserirAresta("A", "C", 8);
-	f.inserirAresta("B", "D", 9);
-	f.inserirAresta("C", "D", 3);
-	f.inserirAresta("C", "E", 4);
-	f.inserirAresta("D", "E", 2);
-	f.inserirAresta("D", "B", 11);
-	ASSERT_EQUAL(7, f.numArestas());
-	ASSERT_THROWS(f.inserirAresta("D", "B", 12), ArestaRepetida<string>);
-	try {
-		f.inserirAresta("D", "B", 12);
-	}
-	catch (ArestaRepetida<string> &e) {
-		ostringstream ostr;
-		ostr << e;
-		string str = "Aresta repetida: D , B";
-		ASSERT_EQUAL(str, ostr.str());
-	}
-
-	ASSERT_THROWS(f.inserirAresta("F", "B", 11), NoInexistente<string>);
-	try {
-		f.inserirAresta("F", "B", 11);
-	}
-	catch (NoInexistente<string> &e) {
-		ostringstream ostr1;
-		ostr1 << e;
-		string str1 = "No inexistente: F";
-		ASSERT_EQUAL(str1, ostr1.str());
-	}
-
-	ASSERT_EQUAL(7, f.numArestas());*/
+void test_c_OrdenaFrequencia() {
+	ParqueEstacionamento p1(10,20);
+	p1.adicionaCliente("Joao Santos");
+	p1.adicionaCliente("Pedro Morais");
+	p1.adicionaCliente("Rui Silva");
+	p1.adicionaCliente("Susana Costa");
+	p1.adicionaCliente("Maria Tavares");
+	p1.entrar("Maria Tavares");
+	p1.entrar("Susana Costa");
+	p1.sair("Susana Costa");
+	p1.sair("Maria Tavares");
+	p1.entrar("Maria Tavares");
+	p1.sair("Maria Tavares");
+	p1.entrar("Rui Silva");
+	p1.sair("Rui Silva");
+	p1.entrar("Susana Costa");
+	p1.entrar("Rui Silva");
+	p1.sair("Rui Silva");
+	p1.entrar("Rui Silva");
+	p1.entrar("Pedro Morais");
+	// Joao Santos: frequencia 0
+	// Pedro Morais: frequencia 1
+	// Maria Tavares: frequencia 2
+	// Susana Costa: frequencia 2
+	// Rui Silva: frequencia 3
+	p1.ordenaClientesPorFrequencia();
+	InfoCartao ic1=p1.getClientes()[2];
+	ASSERT_EQUAL("Susana Costa", ic1.nome);
+	ASSERT_EQUAL(2, ic1.frequencia);
+	InfoCartao ic2=p1.getClientes()[0];
+	ASSERT_EQUAL("Rui Silva", ic2.nome);
+	ASSERT_EQUAL(3, ic2.frequencia);
 }
 
-void test_d_ValorAresta() {
-	/*Grafo<string,int> f;
-	f.inserirNo("A");
-	f.inserirNo("B");
-	f.inserirNo("C");
-	f.inserirNo("D");
-	f.inserirNo("E");
-	f.inserirAresta("A", "B", 5);
-	f.inserirAresta("A", "C", 8);
-	f.inserirAresta("B", "D", 9);
-	f.inserirAresta("C", "D", 3);
-	f.inserirAresta("C", "E", 4);
-	f.inserirAresta("D", "E", 2);
-	f.inserirAresta("D", "B", 11);
-	f.valorAresta("A", "B") = 15;
-	ASSERT_EQUAL(15, f.valorAresta("A", "B"));
-	ASSERT_THROWS(f.valorAresta("A", "A"), ArestaInexistente<string>);
-	try {
-		f.valorAresta("A", "A");
-	}
-	catch (ArestaInexistente<string> &e) {
-		//cout << "Apanhou excecao " << e << endl;
-		ostringstream ostr;
-		ostr << e;
-		string str = "Aresta inexistente: A , A";
-		ASSERT_EQUAL(str, ostr.str());
-	}
+void test_d_GamasUso() {
+	ParqueEstacionamento p1(10,20);
+	p1.adicionaCliente("Joao Santos");
+	p1.adicionaCliente("Pedro Morais");
+	p1.adicionaCliente("Rui Silva");
+	p1.adicionaCliente("Susana Costa");
+	p1.adicionaCliente("Maria Tavares");
+	p1.entrar("Maria Tavares");
+	p1.entrar("Susana Costa");
+	p1.sair("Susana Costa");
+	p1.sair("Maria Tavares");
+	p1.entrar("Maria Tavares");
+	p1.sair("Maria Tavares");
+	p1.entrar("Rui Silva");
+	p1.sair("Rui Silva");
+	p1.entrar("Susana Costa");
+	p1.entrar("Rui Silva");
+	p1.sair("Rui Silva");
+	p1.entrar("Rui Silva");
+	p1.entrar("Pedro Morais");
+	// Joao Santos: frequencia 0
+	// Pedro Morais: frequencia 1
+	// Maria Tavares: frequencia 2
+	// Susana Costa: frequencia 2
+	// Rui Silva: frequencia 3
+	vector<string> clientes = p1.clientesGamaUso(2,3);
+	ASSERT_EQUAL(3,clientes.size());
+	ASSERT_EQUAL("Rui Silva", clientes[0]);
+	ASSERT_EQUAL("Maria Tavares", clientes[1]);
+	ASSERT_EQUAL("Susana Costa", clientes[2]);
+}
 
-	ASSERT_THROWS(f.valorAresta("F", "B"), NoInexistente<string>);
+
+void test_e_OrdenaNome() {
+	ParqueEstacionamento p1(10,20);
+	p1.adicionaCliente("Joao Santos");
+	p1.adicionaCliente("Pedro Morais");
+	p1.adicionaCliente("Rui Silva");
+	p1.adicionaCliente("Susana Costa");
+	p1.adicionaCliente("Maria Tavares");
+	p1.entrar("Maria Tavares");
+	p1.entrar("Susana Costa");
+	p1.sair("Susana Costa");
+	p1.sair("Maria Tavares");
+	p1.entrar("Maria Tavares");
+	p1.sair("Maria Tavares");
+	p1.entrar("Rui Silva");
+	p1.sair("Rui Silva");
+	p1.entrar("Susana Costa");
+	p1.entrar("Rui Silva");
+	p1.sair("Rui Silva");
+	p1.entrar("Rui Silva");
+	p1.entrar("Pedro Morais");
+	p1.ordenaClientesPorNome();
+	InfoCartao ic1=p1.getClientes()[2];
+	ASSERT_EQUAL("Pedro Morais", ic1.nome);
+	InfoCartao ic2=p1.getClientes()[0];
+	ASSERT_EQUAL("Joao Santos", ic2.nome);
+}
+
+void test_f_InfoClientes() {
+	/*ParqueEstacionamento p1(10,20);
+	p1.adicionaCliente("Joao Santos");
+	p1.adicionaCliente("Pedro Morais");
+	p1.adicionaCliente("Rui Silva");
+	p1.adicionaCliente("Susana Costa");
+	p1.adicionaCliente("Maria Tavares");
+	p1.entrar("Maria Tavares");
+	p1.entrar("Susana Costa");
+	p1.sair("Susana Costa");
+	p1.entrar("Rui Silva");
+	p1.entrar("Susana Costa");
+	ASSERTM("Este teste nunca falha! VERIFICAR informação escrita no monitor", true);
+	cout << p1;
+	InfoCartao ic=p1.getClienteAtPos(2);
+	ASSERT_EQUAL("Rui Silva", ic.nome);
+	ASSERT_THROWS(p1.getClienteAtPos(6), PosicaoNaoExistente);
 	try {
-		f.valorAresta("F", "B");
+		p1.getClienteAtPos(6);
 	}
-	catch (NoInexistente<string> &e) {
-		//cout << "Apanhou excecao " << e << endl;
-		ostringstream ostr1;
-		ostr1 << e;
-		string str1 = "No inexistente: F";
-		ASSERT_EQUAL(str1, ostr1.str());
+	catch (PosicaoNaoExistente &e) {
+		ASSERTM("Este teste nunca falha. Verifique no monitor a informacao", true);
+		cout << "Apanhou excecao. Posicao nao existente:" << e.getValor() << endl;
+		ASSERT_EQUAL(6, e.getValor());
 	}*/
 }
 
-void test_e_EliminarAresta() {
-	/*Grafo<string,int> f;
-	f.inserirNo("A");
-	f.inserirNo("B");
-	f.inserirNo("C");
-	f.inserirNo("D");
-	f.inserirNo("E");
-	f.inserirAresta("A", "B", 5);
-	f.inserirAresta("A", "C", 8);
-	f.inserirAresta("B", "D", 9);
-	f.inserirAresta("C", "D", 3);
-	f.inserirAresta("C", "E", 4);
-	f.inserirAresta("D", "E", 2);
-	f.inserirAresta("D", "B", 11);
-	ASSERT_EQUAL(7, f.numArestas());
-	f.eliminarAresta("D", "E");
-	ASSERT_EQUAL(6, f.numArestas());
-	ASSERT_THROWS(f.eliminarAresta("D", "A"), ArestaInexistente<string>);
-	try {
-		f.eliminarAresta("A", "A");
-	}
-	catch (ArestaInexistente<string> &e) {
-		//cout << "Apanhou excecao " << e << endl;
-		ostringstream ostr;
-		ostr << e;
-		string str = "Aresta inexistente: A , A";
-		ASSERT_EQUAL(str, ostr.str());
-	}
-
-	ASSERT_THROWS(f.eliminarAresta("F", "B"), NoInexistente<string>);
-	try {
-		f.eliminarAresta("F", "B");
-	}
-	catch (NoInexistente<string> &e) {
-		//cout << "Apanhou excecao " << e << endl;
-		ostringstream ostr1;
-		ostr1 << e;
-		string str1 = "No inexistente: F";
-		ASSERT_EQUAL(str1, ostr1.str());
-	}
-
-	ASSERT_EQUAL(6, f.numArestas());*/
-}
-
-void test_f_ImprimirGrafo() {
-	/*Grafo<string,int> f;
-	f.inserirNo("A");
-	f.inserirNo("B");
-	f.inserirNo("C");
-	f.inserirNo("D");
-	f.inserirNo("E");
-	f.inserirAresta("A", "B", 5);
-	f.inserirAresta("A", "C", 8);
-	f.inserirAresta("B", "D", 9);
-	f.inserirAresta("C", "D", 3);
-	f.inserirAresta("C", "E", 4);
-	f.inserirAresta("D", "E", 2);
-	f.inserirAresta("D", "B", 11);
-	ASSERT_EQUAL(7, f.numArestas());
-	ostringstream ostr;
-	f.imprimir(ostr);
-	string str = "( A[ B 5] [ C 8] ) ( B[ D 9] ) ( C[ D 3] [ E 4] ) ( D[ E 2] [ B 11] ) ( E) ";
-	cout << str.c_str()<<endl;
-	ASSERT_EQUAL(str, ostr.str());
-*/
-}
-
-void test_g_OperadorSaida() {
-/*	Grafo<string,int> f;
-	f.inserirNo("A");
-	f.inserirNo("B");
-	f.inserirNo("C");
-	f.inserirNo("D");
-	f.inserirNo("E");
-	f.inserirAresta("A", "B", 5);
-	f.inserirAresta("A", "C", 8);
-	f.inserirAresta("B", "D", 9);
-	f.inserirAresta("C", "D", 3);
-	f.inserirAresta("C", "E", 4);
-	f.inserirAresta("D", "E", 2);
-	f.inserirAresta("D", "B", 11);
-	ASSERT_EQUAL(7, f.numArestas());
-	ostringstream ostr;
-	ostr << f;
-	string str = "( A[ B 5] [ C 8] ) ( B[ D 9] ) ( C[ D 3] [ E 4] ) ( D[ E 2] [ B 11] ) ( E) ";
-	ASSERT_EQUAL(str, ostr.str());*/
-}
 
 void runSuite(){
 	cute::suite s;
-	s.push_back(CUTE(test_a_ConstrutorNosArestas));
-	s.push_back(CUTE(test_b_InserirNo));
-	s.push_back(CUTE(test_c_InserirAresta));
-	s.push_back(CUTE(test_d_ValorAresta));
-	s.push_back(CUTE(test_e_EliminarAresta));
-	s.push_back(CUTE(test_f_ImprimirGrafo));
-	s.push_back(CUTE(test_g_OperadorSaida));
+	s.push_back(CUTE(test_a_Pesquisa));
+	s.push_back(CUTE(test_b_UtilizacaoParque));
+	s.push_back(CUTE(test_c_OrdenaFrequencia));
+	s.push_back(CUTE(test_d_GamasUso));
+	s.push_back(CUTE(test_e_OrdenaNome));
+	s.push_back(CUTE(test_f_InfoClientes));
 	cute::ide_listener<> lis;
-	cute::makeRunner(lis)(s, "AEDA 2018/2019 - Aula Pratica 4");
+	cute::makeRunner(lis)(s, "AEDA 2018/2019 - Aula Pratica 5");
 }
-
 
 int main(){
     runSuite();
