@@ -1,193 +1,175 @@
 #include "cute.h"
 #include "ide_listener.h"
 #include "cute_runner.h"
-#include "parque.h"
+#include "StackExt.h"
+#include "Balcao.h"
+#include "exceptions.h"
+#include <iostream>
+#include <stack>
+#include <queue>
+#include <cstdlib>
+#include "performance.h"
+
+using namespace std;
 
 
-void test_a_Pesquisa() {
-	ParqueEstacionamento p1(10,20);
-	p1.adicionaCliente("Joao Santos");
-	p1.adicionaCliente("Pedro Morais");
-	p1.adicionaCliente("Rui Silva");
-	p1.adicionaCliente("Susana Costa");
-	p1.adicionaCliente("Maria Tavares");
-	ASSERT_EQUAL(0, p1.posicaoCliente("Joao Santos"));
-	ASSERT_EQUAL(4, p1.posicaoCliente("Maria Tavares"));
-	ASSERT_EQUAL(1, p1.posicaoCliente("Pedro Morais"));
-	ASSERT_EQUAL(-1, p1.posicaoCliente("Tiago Tavares"));
+void test_1_StackExt_FindMin() {
+	StackExt<int> s1;
+	// Teste ao empty()
+	ASSERT_EQUAL(true, s1.empty());
+	// Teste ao push() e top()
+ 	s1.push(6);
+	s1.push(4);
+	s1.push(7);
+	s1.push(2);
+	s1.push(5);
+	ASSERT_EQUAL(5, s1.top());
+	// Teste ao pop() e top()
+	s1.pop();
+	s1.pop();
+	ASSERT_EQUAL(7, s1.top());
+	
+	// Testar findMin()
+	ASSERT_EQUAL(4, s1.findMin());
+	s1.push(3);
+	s1.push(2);
+	ASSERT_EQUAL(2, s1.findMin());
+
+	// Agora testar findMin() para saber se executa em tempo constante
+	// preparar Stack removendo todos os elementos
+	s1.pop();
+	s1.pop();
+	s1.pop();
+	s1.pop();
+	s1.pop();
+	ASSERT_EQUAL(true, s1.empty());
+
+	// preparar dados para teste TEMPO EXECUCAO
+	int size = 9;
+	unsigned int elapsedTime[size];
+	int x_el[] = {5000000,6000000,7000000,8000000,9000000,10000000,11000000,12000000,13000000};
+	int random_int;
+	ticks tstart;
+	ticks tend;
+
+	for (int i = 0; i < size; i++) {
+		// encher stack com numero de elementos indicados pelo x_el
+		for (int z = 1; z <= x_el[i]; z++) {
+			random_int = rand() % 1000 + 1;
+			s1.push(random_int);
+		}
+		// agora contar tempo invocando o metodo
+		tstart = getticks(); // inicio contagem ticks
+		s1.findMin(); // este ee constante
+		tend = getticks(); // fim da contagem ticks
+		// colocar valor no array de elapsedTime
+		elapsedTime[i] = getElapsed(tend,tstart);
+		// retirar da stack os numeros la colocados
+		for (int z = 1; z <= x_el[i]; z++) {
+			s1.pop();
+		}
+	}
+	// Verifica se executa em TEMPO CONSTANTE
+	// NOTA: o parametro com valor 10 significa que sao considerados constantes valores no intervalo [-10, 10]
+	ASSERT_EQUAL(true, isConstant(elapsedTime, size, 10));
 }
 
-void test_b_UtilizacaoParque() {
-	ParqueEstacionamento p1(10,20);
-	p1.adicionaCliente("Joao Santos");
-	p1.adicionaCliente("Pedro Morais");
-	p1.adicionaCliente("Rui Silva");
-	p1.adicionaCliente("Susana Costa");
-	p1.adicionaCliente("Maria Tavares");
-	p1.entrar("Maria Tavares");
-	p1.entrar("Susana Costa");
-	p1.sair("Susana Costa");
-	p1.sair("Maria Tavares");
-	p1.entrar("Maria Tavares");
-	p1.sair("Maria Tavares");
-	p1.entrar("Rui Silva");
-	p1.sair("Rui Silva");
-	p1.entrar("Susana Costa");
-	p1.entrar("Rui Silva");
-	p1.sair("Rui Silva");
-	p1.entrar("Rui Silva");
-	p1.entrar("Pedro Morais");
-	ASSERT_EQUAL(3, p1.getFrequencia("Rui Silva"));
-	ASSERT_EQUAL(1, p1.getFrequencia("Pedro Morais"));
-	ASSERT_EQUAL(0, p1.getFrequencia("Joao Santos"));
-	ASSERT_THROWS(p1.getFrequencia("Tiago Silva"), ClienteNaoExistente);
+void test_2a_ConstructorCliente(){
+    srand(time(NULL));
+    Cliente c;
+    ASSERT((c.getNumPresentes()>0 && c.getNumPresentes()<=5));
+}
+
+void test_2b_ConstructorBalcao(){
+    srand(time(NULL));
+    Balcao b;
+    ASSERT_EQUAL(0, b.getClientesAtendidos());
+    ASSERT_EQUAL(2, b.getTempoEmbrulho());
+    ASSERT_EQUAL(0, b.getTempoAtual());
+    ASSERT((b.getProxChegada()>0 && b.getProxChegada() <= 20));
+    ASSERT_EQUAL(0, b.getProxSaida());
+	ASSERT_THROWS(b.getProxCliente(), FilaVazia);
 	try {
-		p1.getFrequencia("Tiago Silva");
+		b.getProxCliente();
 	}
-	catch (ClienteNaoExistente &e) {
-		cout << "Apanhou excecao. Cliente nao existente: " << e.getNome() << endl;
-		ASSERT_EQUAL("Tiago Silva", e.getNome());
+	catch (FilaVazia &e) {
+		cout << "Apanhou excecao. FilaVazia: " << e.getMsg() << endl;
+		ASSERT_EQUAL("Fila Vazia", e.getMsg());
 	}
 }
 
-void test_c_OrdenaFrequencia() {
-	ParqueEstacionamento p1(10,20);
-	p1.adicionaCliente("Joao Santos");
-	p1.adicionaCliente("Pedro Morais");
-	p1.adicionaCliente("Rui Silva");
-	p1.adicionaCliente("Susana Costa");
-	p1.adicionaCliente("Maria Tavares");
-	p1.entrar("Maria Tavares");
-	p1.entrar("Susana Costa");
-	p1.sair("Susana Costa");
-	p1.sair("Maria Tavares");
-	p1.entrar("Maria Tavares");
-	p1.sair("Maria Tavares");
-	p1.entrar("Rui Silva");
-	p1.sair("Rui Silva");
-	p1.entrar("Susana Costa");
-	p1.entrar("Rui Silva");
-	p1.sair("Rui Silva");
-	p1.entrar("Rui Silva");
-	p1.entrar("Pedro Morais");
-	// Joao Santos: frequencia 0
-	// Pedro Morais: frequencia 1
-	// Maria Tavares: frequencia 2
-	// Susana Costa: frequencia 2
-	// Rui Silva: frequencia 3
-	p1.ordenaClientesPorFrequencia();
-	InfoCartao ic1=p1.getClientes()[2];
-	ASSERT_EQUAL("Susana Costa", ic1.nome);
-	ASSERT_EQUAL(2, ic1.frequencia);
-	InfoCartao ic2=p1.getClientes()[0];
-	ASSERT_EQUAL("Rui Silva", ic2.nome);
-	ASSERT_EQUAL(3, ic2.frequencia);
+void test_2c_ChegadaBalcao(){
+    Balcao b;
+    ASSERTM("Este teste nao falha. Verifique se na consola aparece (x varia entre 1 e 5): tempo= 0\nchegou novo cliente com x presentes", true);
+    b.chegada();
+    //
+    // Agora que se invocou o método chegada, verifica-se se fez correctamente alguns dos requisitos
+    //
+    ASSERT_EQUAL(0, b.getTempoAtual());
+    ASSERT((b.getProxCliente().getNumPresentes()>0 && b.getProxCliente().getNumPresentes()<=5));
+    ASSERT((b.getProxChegada()>0 && b.getProxChegada() <= 20));
+    ASSERT((b.getProxSaida()>=2 && b.getProxSaida() <= 10)); // entre [0+1*2, 0+5*2]
 }
 
-void test_d_GamasUso() {
-	ParqueEstacionamento p1(10,20);
-	p1.adicionaCliente("Joao Santos");
-	p1.adicionaCliente("Pedro Morais");
-	p1.adicionaCliente("Rui Silva");
-	p1.adicionaCliente("Susana Costa");
-	p1.adicionaCliente("Maria Tavares");
-	p1.entrar("Maria Tavares");
-	p1.entrar("Susana Costa");
-	p1.sair("Susana Costa");
-	p1.sair("Maria Tavares");
-	p1.entrar("Maria Tavares");
-	p1.sair("Maria Tavares");
-	p1.entrar("Rui Silva");
-	p1.sair("Rui Silva");
-	p1.entrar("Susana Costa");
-	p1.entrar("Rui Silva");
-	p1.sair("Rui Silva");
-	p1.entrar("Rui Silva");
-	p1.entrar("Pedro Morais");
-	// Joao Santos: frequencia 0
-	// Pedro Morais: frequencia 1
-	// Maria Tavares: frequencia 2
-	// Susana Costa: frequencia 2
-	// Rui Silva: frequencia 3
-	vector<string> clientes = p1.clientesGamaUso(2,3);
-	ASSERT_EQUAL(3,clientes.size());
-	ASSERT_EQUAL("Rui Silva", clientes[0]);
-	ASSERT_EQUAL("Maria Tavares", clientes[1]);
-	ASSERT_EQUAL("Susana Costa", clientes[2]);
-}
+void test_2d_SaidaBalcao(){
+    Balcao b;
+    // Simula a chegada de um cliente
+    b.chegada();
+    b.chegada();
 
-
-void test_e_OrdenaNome() {
-	ParqueEstacionamento p1(10,20);
-	p1.adicionaCliente("Joao Santos");
-	p1.adicionaCliente("Pedro Morais");
-	p1.adicionaCliente("Rui Silva");
-	p1.adicionaCliente("Susana Costa");
-	p1.adicionaCliente("Maria Tavares");
-	p1.entrar("Maria Tavares");
-	p1.entrar("Susana Costa");
-	p1.sair("Susana Costa");
-	p1.sair("Maria Tavares");
-	p1.entrar("Maria Tavares");
-	p1.sair("Maria Tavares");
-	p1.entrar("Rui Silva");
-	p1.sair("Rui Silva");
-	p1.entrar("Susana Costa");
-	p1.entrar("Rui Silva");
-	p1.sair("Rui Silva");
-	p1.entrar("Rui Silva");
-	p1.entrar("Pedro Morais");
-	p1.ordenaClientesPorNome();
-	InfoCartao ic1=p1.getClientes()[2];
-	ASSERT_EQUAL("Pedro Morais", ic1.nome);
-	InfoCartao ic2=p1.getClientes()[0];
-	ASSERT_EQUAL("Joao Santos", ic2.nome);
-}
-
-void test_f_InfoClientes() {
-	/*ParqueEstacionamento p1(10,20);
-	p1.adicionaCliente("Joao Santos");
-	p1.adicionaCliente("Pedro Morais");
-	p1.adicionaCliente("Rui Silva");
-	p1.adicionaCliente("Susana Costa");
-	p1.adicionaCliente("Maria Tavares");
-	p1.entrar("Maria Tavares");
-	p1.entrar("Susana Costa");
-	p1.sair("Susana Costa");
-	p1.entrar("Rui Silva");
-	p1.entrar("Susana Costa");
-	ASSERTM("Este teste nunca falha! VERIFICAR informação escrita no monitor", true);
-	cout << p1;
-	InfoCartao ic=p1.getClienteAtPos(2);
-	ASSERT_EQUAL("Rui Silva", ic.nome);
-	ASSERT_THROWS(p1.getClienteAtPos(6), PosicaoNaoExistente);
-	try {
-		p1.getClienteAtPos(6);
+    b.saida();
+    // Agora que se invocou o metodo saida, verifica se fez corretamente alguns dos requisitos
+    ASSERT_EQUAL(0, b.getTempoAtual());
+    ASSERT((b.getProxSaida()>=2 && b.getProxSaida() <= 10)); // entre [0+1*2, 0+5*2]
+    b.saida();
+    try {
+		b.getProxCliente();
 	}
-	catch (PosicaoNaoExistente &e) {
-		ASSERTM("Este teste nunca falha. Verifique no monitor a informacao", true);
-		cout << "Apanhou excecao. Posicao nao existente:" << e.getValor() << endl;
-		ASSERT_EQUAL(6, e.getValor());
-	}*/
+	catch (FilaVazia &e) {
+		cout << "Apanhou excecao. FilaVazia: " << e.getMsg() << endl;
+		ASSERT_EQUAL("Fila Vazia", e.getMsg());
+	}
+}
+
+void test_2e_ProximoEvento(){
+	ASSERTM("Este teste nao falha. Verifique na consola os valores", true);
+	Balcao b;
+    b.proximoEvento();
+    cout << "01: " << "Clientes atendidos: " << b.getClientesAtendidos() << " Tempo actual: " << b.getTempoAtual() << " Prox chegada: " << b.getProxChegada() << " Prox Saida: " << b.getProxSaida() << endl;
+    b.proximoEvento();
+    cout << "02: " << "Clientes atendidos: " << b.getClientesAtendidos() << " Tempo actual: " << b.getTempoAtual() << " Prox chegada: " << b.getProxChegada() << " Prox Saida: " << b.getProxSaida() << endl;
+    b.proximoEvento();
+    cout << "03: " << "Clientes atendidos: " << b.getClientesAtendidos() << " Tempo actual: " << b.getTempoAtual() << " Prox chegada: " << b.getProxChegada() << " Prox Saida: " << b.getProxSaida() << endl;
+    b.proximoEvento();
+    cout << "04: " << "Clientes atendidos: " << b.getClientesAtendidos() << " Tempo actual: " << b.getTempoAtual() << " Prox chegada: " << b.getProxChegada() << " Prox Saida: " << b.getProxSaida() << endl;
+}
+
+void test_2f_Operador() {
+    ASSERTM("Este teste nao falha. Verifique na consola os valores", true);
+	Balcao b;
+    b.proximoEvento();
+    b.proximoEvento();
+    b.proximoEvento();
+    b.proximoEvento();
+    cout << b << endl;
 }
 
 
 void runSuite(){
 	cute::suite s;
-	s.push_back(CUTE(test_a_Pesquisa));
-	s.push_back(CUTE(test_b_UtilizacaoParque));
-	s.push_back(CUTE(test_c_OrdenaFrequencia));
-	s.push_back(CUTE(test_d_GamasUso));
-	s.push_back(CUTE(test_e_OrdenaNome));
-	s.push_back(CUTE(test_f_InfoClientes));
+	s.push_back(CUTE(test_1_StackExt_FindMin));
+	s.push_back(CUTE(test_2a_ConstructorCliente));
+	s.push_back(CUTE(test_2b_ConstructorBalcao));
+	s.push_back(CUTE(test_2c_ChegadaBalcao));
+	s.push_back(CUTE(test_2d_SaidaBalcao));
+	s.push_back(CUTE(test_2e_ProximoEvento));
+	s.push_back(CUTE(test_2f_Operador));
 	cute::ide_listener<> lis;
-	cute::makeRunner(lis)(s, "AEDA 2018/2019 - Aula Pratica 5");
+	cute::makeRunner(lis)(s, "AEDA 2018/2019 - Aula Pratica 7");
 }
 
 int main(){
     runSuite();
     return 0;
 }
-
-
 
