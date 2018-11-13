@@ -25,7 +25,15 @@ Balcao::Balcao(int te): tempo_embrulho(te) {
 
 void Balcao:: proximoEvento()
 {
-	// a alterar
+		if(prox_chegada < prox_saida)
+		{chegada();
+		tempo_atual = prox_chegada;
+		}
+	else
+	{
+		saida();
+		tempo_atual = prox_saida;
+			}
 }
 
 
